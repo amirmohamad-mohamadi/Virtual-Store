@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
-
 const HomePage = () => {
-  return <Button>ProStore</Button>;
+  return <>ProStore</>;
 };
 
 export default HomePage;
