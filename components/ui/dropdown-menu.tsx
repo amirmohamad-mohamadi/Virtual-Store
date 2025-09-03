@@ -9,8 +9,6 @@ import { cn } from "@/lib/utils";
 function DropdownMenu({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  console.log("==>", props);
-
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
 }
 
