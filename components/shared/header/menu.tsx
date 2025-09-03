@@ -30,7 +30,7 @@ const Menu = () => {
         </nav>
         <nav className="md:hidden">
           <Sheet>
-            <SheetTrigger className="align-middle">
+            <SheetTrigger className="align-middle  cursor-pointer">
               <EllipsisVertical />
             </SheetTrigger>
             <SheetContent className="dropdown-menu flex flex-col items-start pl-[10px]">
