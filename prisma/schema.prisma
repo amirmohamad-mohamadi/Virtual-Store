@@ -13,3 +13,25 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// NOTE: id => Primary key ‘id’ uses a database-generated UUID (gen_random_uuid()) and is stored as UUID (PostgreSQL uuid type).
+// NOTE: slug =>Slug must be globally unique; this uses a named unique index ‘product_slug_idx’.
+// NOTE: price =>Default price is 0; this field uses a fixed-point decimal with precision 12 and scale 2 (DECIMAL(12, 2)).
+// NOTE: createdAt => Auto-generated creation time; default now() with microsecond precision (timestamp(6)).
+
+model Product {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  slug        String   @unique(map: "product_slug_idx")
+  category    String
+  images      String[]
+  brand       String
+  description String
+  stock       Int
+  price       Decimal  @default(0) @db.Decimal(12, 2)
+  rating      Decimal  @default(0) @db.Decimal(3, 2)
+  numReviews  Int      @default(0)
+  isFeatured  Boolean  @default(false)
+  banner      String?
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+}
