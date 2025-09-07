@@ -7,6 +7,7 @@ import { LATEST_PRODUCTS_LIMIT } from "../constants";
 export async function getLatestProducts() {
   const prisma = new PrismaClient();
 
+  // SQLCode => SELECT * FROM "Product" ORDER BY "createdAt" DESC LIMIT LATEST_PRODUCTS_LIMIT;
   const data = await prisma.product.findMany({
     take: LATEST_PRODUCTS_LIMIT,
     orderBy: { createdAt: "desc" },
