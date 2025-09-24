@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-
 import { auth } from "@/auth";
 import {
   Card,
@@ -18,7 +17,12 @@ export const metadata: Metadata = {
   title: "Sign In",
 };
 
-const SignIn = () => {
+const SignIn = async () => {
+  const session = await auth();
+
+  if (session) {
+    return redirect("/");
+  }
   return (
     <div className="w-full max-w-md mx-auto">
       <Card>
