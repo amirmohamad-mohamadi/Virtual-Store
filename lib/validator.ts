@@ -29,3 +29,18 @@ export const insertProductSchema = z.object({
   banner: z.string().nullable(),
   price: currency,
 });
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Schema for signing in a user
+export const signInFormSchema = z.object({
+  email: z
+    .string()
+    .min(3, { error: "Email must be at least 3 characters" })
+    .refine((val) => emailRegex.test(val), {
+      error: "Invalid email address",
+    }),
+  password: z
+    .string()
+    .min(3, { error: "Password must be at least 3 characters" }),
+});
