@@ -72,17 +72,45 @@ export const config = {
   ],
   // Callbacks in NextAuth act like filters/controllers to customize, restrict, or enrich data before it reaches the frontend
   callbacks: {
-    // Customize session object: attach user ID from JWT and optionally update name on session trigger
-    async session({ session, user, trigger, token }: any) {
-      // Attach user ID from token to session object
-      session.user.id = token.sub;
+    async jwt({ token, user, trigger, session }: any) {
+      // اگر کاربر تازه لاگین کرده، اطلاعاتش رو به توکن اضافه کن
+      if (user) {
+        token.role = user.role;
 
-      // If session is updated, sync the user's name
-      if (trigger === "update") {
-        session.user.name = user.name;
+        // اگر نام کاربر 'NO_NAME' بود، از ایمیلش به عنوان نام استفاده کن
+        if (user.name === "NO_NAME") {
+          token.name = user.email!.split("@")[0];
+
+          // نام جدید رو داخل دیتابیس ذخیره کن
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { name: token.name },
+          });
+        }
       }
 
-      // Return the modified session object
+      // اگر سشن آپدیت شده (مثلاً نام تغییر کرده)، توکن رو هم آپدیت کن
+      if (session?.user.name && trigger === "update") {
+        token.name = session.user.name;
+      }
+
+      //  توکن نهایی رو برگردون
+      return token;
+    },
+    // Customize session object: attach user ID from JWT and optionally update name on session trigger
+    // این تابع بعد از جی دبلیو تی یعنی تابع بالا اجرا می‌شه و اطلاعات توکن رو به سشن منتقل می‌کنه.
+    async session({ session, token, trigger }: any) {
+      // اطلاعات توکن رو به session منتقل کن
+      session.user.id = token.id;
+      session.user.name = token.name;
+      session.user.role = token.role;
+
+      // اگر سشن آپدیت شده، نام جدید رو اعمال کن
+      if (trigger === "update" && token.name) {
+        session.user.name = token.name;
+      }
+
+      //  سشن نهایی رو برگردون
       return session;
     },
   },
