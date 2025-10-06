@@ -1,12 +1,29 @@
 "use server";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { formatError } from "../utils";
+import { formatError, round2 } from "../utils";
 import { convertToPlainObject } from "../utils";
 import { CartItem } from "@/types/types";
 import { prisma } from "@/db/prisma";
 import { auth } from "@/auth";
-import { cartItemSchema } from "../validator";
+import { cartItemSchema, insertCartSchema } from "../validator";
+import { revalidatePath } from "next/cache";
+
+// Calculate cart price based on items
+const calcPrice = (items: z.infer<typeof cartItemSchema>[]) => {
+  const itemsPrice = round2(
+      items.reduce((acc, item) => acc + Number(item.price) * item.qty, 0)
+    ),
+    shippingPrice = round2(itemsPrice > 100 ? 0 : 10),
+    taxPrice = round2(0.15 * itemsPrice),
+    totalPrice = round2(itemsPrice + shippingPrice + taxPrice);
+  return {
+    itemsPrice: itemsPrice.toFixed(2),
+    shippingPrice: shippingPrice.toFixed(2),
+    taxPrice: taxPrice.toFixed(2),
+    totalPrice: totalPrice.toFixed(2),
+  };
+};
 
 //  Get user cart from database
 export async function getMyCart() {
@@ -53,19 +70,27 @@ export const addItemToCart = async (data: z.infer<typeof cartItemSchema>) => {
     });
     if (!product) throw new Error("Product not found");
 
-    // Testing
-    console.log({
-      "Session Cart ID": sessionCartId,
-      "User ID": userId,
-      "Item Requested": item,
-      "Product Found": product,
-      cart: cart,
-    });
+    if (!cart) {
+      // Create new cart object
+      const newCart = insertCartSchema.parse({
+        userId: userId,
+        items: [item],
+        sessionCartId: sessionCartId,
+        ...calcPrice([item]),
+      });
+      // Add to database
+      await prisma.cart.create({
+        data: newCart,
+      });
 
-    return {
-      success: true,
-      message: "Testing Cart",
-    };
+      // Revalidate product page
+      revalidatePath(`/product/${product.slug}`);
+
+      return {
+        success: true,
+        message: "Item added to cart successfully",
+      };
+    }
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
