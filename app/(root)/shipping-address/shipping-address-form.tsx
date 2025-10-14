@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Loader } from "lucide-react";
 import { showCustomToast } from "@/components/ui/customToast";
+import CheckoutSteps from "@/components/shared/checkout-steps";
 
 const ShippingAddressForm = ({ address }) => {
   const router = useRouter();
@@ -51,6 +52,7 @@ const ShippingAddressForm = ({ address }) => {
 
   return (
     <>
+      <CheckoutSteps current={1} />
       <div className="max-w-md mx-auto space-y-4">
         <h1 className="h2-bold mt-4">Shipping Address</h1>
         <p className="text-sm text-muted-foreground">
